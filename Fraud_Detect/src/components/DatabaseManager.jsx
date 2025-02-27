@@ -24,13 +24,13 @@ function DatabaseManager() {
     const [error, setError] = useState('');
 
     const predefinedQueries = {
-        clientes: "MATCH (c:Cliente) RETURN c",
-        cuentas: "MATCH (c:Cuenta) RETURN c",
-        dispositivos: "MATCH (d:Dispositivo) RETURN d",
-        establecimientos: "MATCH (e:Establecimiento) RETURN e",
-        personas: "MATCH (p:Persona) RETURN p",
-        transacciones: "MATCH (t:Transaccion) RETURN t",
-        relacionesClientes: "MATCH (c:Cliente)-[r]->(n) RETURN c, type(r), n",
+        clientes: "MATCH (c:Cliente) RETURN c.Nombre as Nombre, c.FechaNacimiento as FechaNacimiento, c.Direccion as Direccion, toString(c.DPI) as DPI, c.NivelRiesgo as NivelRiesgo",
+        cuentas: "MATCH (c:Cuenta) RETURN c.NumeroCuenta as NumeroCuenta, c.Tipo as Tipo, c.Saldo as Saldo",
+        dispositivos: "MATCH (d:Dispositivo) RETURN d.ID as ID, d.Tipo as Tipo, d.IP as IP, d.Sistema as Sistema, d.Ubicacion as Ubicacion",
+        establecimientos: "MATCH (e:Establecimiento) RETURN e.ID as ID, e.Nombre as Nombre, e.Direccion as Direccion, e.Tipo as Tipo, e.Categoria as Categoria",
+        personas: "MATCH (p:Persona) RETURN p.Nombre as Nombre, p.FechaNacimiento as FechaNacimiento, p.Direccion as Direccion, p.NivelRiesgo as NivelRiesgo, toString(p.DPI) as DPI",
+        transacciones: "MATCH (t:Transaccion) RETURN t.ID as ID, t.Monto as Monto, t.Fecha as Fecha, t.Tipo as Tipo, t.Estado as Estado, t.Descripcion as Descripcion",
+        relacionesClientes: "MATCH (c:Cliente)-[r]->(n) RETURN c.Nombre as Cliente, type(r) as Relacion, n.Nombre as Relacionado, n.Tipo as TipoRelacionado"
     };
 
     const executeQuery = async (customQuery = null) => {
@@ -62,8 +62,55 @@ function DatabaseManager() {
     };
 
     const formatDate = (dateObj) => {
-        if (!dateObj) return '';
-        return `${dateObj.year.low}-${String(dateObj.month.low).padStart(2, '0')}-${String(dateObj.day.low).padStart(2, '0')}`;
+        if (!dateObj || !dateObj.year || !dateObj.month || !dateObj.day) return '';
+        const year = dateObj.year.low;
+        const month = String(dateObj.month.low).padStart(2, '0');
+        const day = String(dateObj.day.low).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const formatValue = (value, columnName) => {
+        if (value === null || value === undefined) return '';
+
+        // Manejo especial para fechas
+        if (columnName.includes('Fecha')) {
+            return formatDate(value);
+        }
+
+        // Manejo especial para DPI
+        if (columnName.includes('DPI')) {
+            if (typeof value === 'string') {
+                return value;
+            }
+            if (typeof value === 'number') {
+                return value.toString();
+            }
+            if (typeof value === 'object' && 'low' in value) {
+                return value.low.toString();
+            }
+            return value;
+        }
+
+        // Manejo especial para valores numéricos (Saldo, Monto, NivelRiesgo)
+        if (['Saldo', 'Monto', 'NivelRiesgo', 'ID'].some(field => columnName.includes(field))) {
+            if (typeof value === 'object' && 'low' in value) {
+                return value.low;
+            }
+            return value;
+        }
+
+        // Para otros objetos, mostrar valores relevantes
+        if (typeof value === 'object') {
+            if ('properties' in value) {
+                return Object.values(value.properties).join(', ');
+            }
+            if ('low' in value) {
+                return value.low;
+            }
+            return Object.values(value).filter(v => v !== null && v !== undefined).join(', ');
+        }
+
+        return value.toString();
     };
 
     const renderTableContent = (results) => {
@@ -72,12 +119,8 @@ function DatabaseManager() {
         // Obtener todas las columnas únicas de todos los resultados
         const allColumns = new Set();
         results.forEach(result => {
-            Object.entries(result).forEach(([key, value]) => {
-                if (typeof value === 'object' && value !== null) {
-                    Object.keys(value).forEach(k => {
-                        if (k !== 'type') allColumns.add(`${key}_${k}`);
-                    });
-                } else {
+            Object.keys(result).forEach(key => {
+                if (result[key] !== null && result[key] !== undefined) {
                     allColumns.add(key);
                 }
             });
@@ -100,34 +143,11 @@ function DatabaseManager() {
                     <TableBody>
                         {results.map((result, index) => (
                             <TableRow key={index}>
-                                {columns.map((column) => {
-                                    const [parentKey, childKey] = column.split('_');
-                                    let value = result[parentKey];
-
-                                    if (childKey && value) {
-                                        value = value[childKey];
-                                    }
-
-                                    // Formateo especial para fechas
-                                    if (column === 'FechaNacimiento') {
-                                        return (
-                                            <TableCell key={column}>
-                                                {formatDate(value)}
-                                            </TableCell>
-                                        );
-                                    }
-
-                                    // Manejo de diferentes tipos de valores
-                                    if (typeof value === 'object' && value !== null) {
-                                        value = JSON.stringify(value);
-                                    }
-
-                                    return (
-                                        <TableCell key={column}>
-                                            {value?.toString() || ''}
-                                        </TableCell>
-                                    );
-                                })}
+                                {columns.map((column) => (
+                                    <TableCell key={column}>
+                                        {formatValue(result[column], column)}
+                                    </TableCell>
+                                ))}
                             </TableRow>
                         ))}
                     </TableBody>
