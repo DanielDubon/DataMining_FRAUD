@@ -29,7 +29,7 @@ function DatabaseManager() {
         dispositivos: "MATCH (d:Dispositivo) RETURN d.ID as ID, d.Tipo as Tipo, d.IP as IP, d.Sistema as Sistema, d.Ubicacion as Ubicacion",
         establecimientos: "MATCH (e:Establecimiento) RETURN e.ID as ID, e.Nombre as Nombre, e.Direccion as Direccion, e.Tipo as Tipo, e.Categoria as Categoria",
         personas: "MATCH (p:Persona) RETURN p.Nombre as Nombre, p.FechaNacimiento as FechaNacimiento, p.Direccion as Direccion, p.NivelRiesgo as NivelRiesgo, toString(p.DPI) as DPI",
-        transacciones: "MATCH (t:Transaccion) RETURN t.ID as ID, t.Monto as Monto, t.Fecha as Fecha, t.Tipo as Tipo, t.Estado as Estado, t.Descripcion as Descripcion",
+        transacciones: "MATCH (t:Transacción) RETURN t.ID as ID, t.Monto as Monto, t.Fecha as Fecha, t.Ubicacion as Ubicacion, t.Tipo as Tipo",
         relacionesClientes: "MATCH (c:Cliente)-[r]->(n) RETURN c.Nombre as Cliente, type(r) as Relacion, n.Nombre as Relacionado, n.Tipo as TipoRelacionado"
     };
 
@@ -37,10 +37,10 @@ function DatabaseManager() {
         const session = driver.session();
         try {
             const result = await session.run(customQuery || query);
+            console.log("Resultados de la consulta:", result.records); // Depuración
             const formattedResults = result.records.map(record => {
                 const obj = record.toObject();
                 return Object.entries(obj).reduce((acc, [key, value]) => {
-                    // Formatear los nodos y relaciones para mejor lectura
                     if (value && value.properties) {
                         acc[key] = {
                             type: value.labels ? value.labels[0] : value.type,
@@ -55,6 +55,7 @@ function DatabaseManager() {
             setResults(formattedResults);
             setError('');
         } catch (err) {
+            console.error("Error en la consulta:", err); // Depuración
             setError(err.message);
         } finally {
             await session.close();
@@ -70,14 +71,12 @@ function DatabaseManager() {
     };
 
     const formatValue = (value, columnName) => {
-        if (value === null || value === undefined) return '';
-
-        // Manejo especial para fechas
+        if (value === null || value === undefined || value === '') return 'N/A'; // Mostrar 'N/A' si el valor está vacío
+    
         if (columnName.includes('Fecha')) {
             return formatDate(value);
         }
-
-        // Manejo especial para DPI
+    
         if (columnName.includes('DPI')) {
             if (typeof value === 'string') {
                 return value;
@@ -90,16 +89,14 @@ function DatabaseManager() {
             }
             return value;
         }
-
-        // Manejo especial para valores numéricos (Saldo, Monto, NivelRiesgo)
+    
         if (['Saldo', 'Monto', 'NivelRiesgo', 'ID'].some(field => columnName.includes(field))) {
             if (typeof value === 'object' && 'low' in value) {
                 return value.low;
             }
             return value;
         }
-
-        // Para otros objetos, mostrar valores relevantes
+    
         if (typeof value === 'object') {
             if ('properties' in value) {
                 return Object.values(value.properties).join(', ');
@@ -107,16 +104,21 @@ function DatabaseManager() {
             if ('low' in value) {
                 return value.low;
             }
-            return Object.values(value).filter(v => v !== null && v !== undefined).join(', ');
+            return Object.values(value).filter(v => v !== null && v !== undefined && v !== '').join(', ');
         }
-
+    
         return value.toString();
     };
 
     const renderTableContent = (results) => {
-        if (results.length === 0) return null;
-
-        // Obtener todas las columnas únicas de todos los resultados
+        if (results.length === 0) {
+            return (
+                <Typography variant="body1" style={{ marginTop: '20px' }}>
+                    No se encontraron resultados.
+                </Typography>
+            );
+        }
+    
         const allColumns = new Set();
         results.forEach(result => {
             Object.keys(result).forEach(key => {
@@ -125,9 +127,9 @@ function DatabaseManager() {
                 }
             });
         });
-
+    
         const columns = Array.from(allColumns);
-
+    
         return (
             <TableContainer component={Paper} style={{ marginTop: '20px' }}>
                 <Table>

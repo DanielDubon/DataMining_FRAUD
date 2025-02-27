@@ -3,6 +3,9 @@
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  background-color: #f7f9fc;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
 .logo {
@@ -35,8 +38,114 @@
 
 .card {
   padding: 2em;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .read-the-docs {
   color: #888;
+}
+
+button {
+  background-color: #4caf50;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.8em 1.5em;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+button:hover {
+  background-color: #388e3c;
+  transform: translateY(-2px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+.table-container {
+  margin-top: 20px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.table-header {
+  background-color: #007bff;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.table-row:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+/* Nuevos estilos */
+.database-manager-container {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+}
+
+.query-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.query-buttons button {
+  background-color: #007bff;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.query-buttons button:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+}
+
+.query-buttons button:active {
+  transform: translateY(0);
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.results-table th, .results-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.results-table th {
+  background-color: #007bff;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.results-table tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.error-message {
+  color: #ff0000;
+  margin-top: 10px;
+  font-weight: bold;
 }
