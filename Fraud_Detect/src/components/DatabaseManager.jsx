@@ -1,18 +1,9 @@
 import React, { useState } from 'react';
-import {
-    Container,
-    Box,
-    Tabs,
-    Tab
-} from '@mui/material';
+import { Container } from '@mui/material';
 import driver from '../config/neo4jConfig';
-import Create from './Create';
 import Read from './Read';
-import Update from './Update';
-import Delete from './Delete';
 
-function DatabaseManager() {
-    const [selectedTab, setSelectedTab] = useState(0);
+function DatabaseManager({ executeQuery }) {
     const [results, setResults] = useState([]);
     const [error, setError] = useState('');
 
@@ -26,7 +17,7 @@ function DatabaseManager() {
         relacionesClientes: "MATCH (c:Cliente)-[r]->(n) RETURN c.Nombre as Cliente, type(r) as Relacion, n.Nombre as Relacionado, n.Tipo as TipoRelacionado"
     };
 
-    const executeQuery = async (selectedQuery) => {
+    const handleQuery = async (selectedQuery) => {
         if (!selectedQuery) {
             setError('Por favor, selecciona una consulta.');
             return;
@@ -34,10 +25,8 @@ function DatabaseManager() {
 
         const session = driver.session();
         try {
-            console.log(`Ejecutando consulta: ${predefinedQueries[selectedQuery]}`);
             const result = await session.run(predefinedQueries[selectedQuery]);
             const formattedResults = result.records.map(record => record.toObject());
-            console.log('Resultados obtenidos:', formattedResults);
             setResults(formattedResults);
             setError('');
         } catch (err) {
@@ -48,32 +37,9 @@ function DatabaseManager() {
         }
     };
 
-    const handleTabChange = (event, newValue) => {
-        setSelectedTab(newValue);
-    };
-
     return (
-        <Container maxWidth="lg" style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '20px' }}>
-            <Box sx={{ width: '25%', borderRight: 1, borderColor: 'divider', marginRight: '20px' }}>
-                <Tabs
-                    orientation="vertical"
-                    value={selectedTab}
-                    onChange={handleTabChange}
-                    aria-label="CRUD Tabs"
-                    sx={{ minWidth: '150px' }}
-                >
-                    <Tab label="CREATE" />
-                    <Tab label="READ" />
-                    <Tab label="UPDATE" />
-                    <Tab label="DELETE" />
-                </Tabs>
-            </Box>
-            <Box sx={{ width: '70%', padding: '20px' }}>
-                {selectedTab === 0 && <Create />}
-                {selectedTab === 1 && <Read executeQuery={executeQuery} results={results} error={error} />}
-                {selectedTab === 2 && <Update />}
-                {selectedTab === 3 && <Delete />}
-            </Box>
+        <Container>
+            <Read executeQuery={handleQuery} results={results} error={error} />
         </Container>
     );
 }
