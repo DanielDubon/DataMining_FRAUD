@@ -7,6 +7,7 @@ import Update from './components/Update'
 import Delete from './components/Delete'
 import driver from './config/neo4jConfig'
 import { Container, Tab, Tabs, Box } from '@mui/material'
+import CreateRelation from './components/CreateRelation'
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props
@@ -23,9 +24,14 @@ function TabPanel(props) {
 
 function App() {
   const [value, setValue] = React.useState(0)
+  const [createTabValue, setCreateTabValue] = React.useState(0)
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
+  }
+
+  const handleCreateTabChange = (event, newValue) => {
+    setCreateTabValue(newValue)
   }
 
   const executeQuery = async (query) => {
@@ -61,7 +67,18 @@ function App() {
           <DatabaseManager executeQuery={executeQuery} />
         </TabPanel>
         <TabPanel value={value} index={1}>
-          <Create executeQuery={executeQuery} />
+          <Box>
+            <Tabs value={createTabValue} onChange={handleCreateTabChange}>
+              <Tab label="Crear Nodos" />
+              <Tab label="Crear Relaciones" />
+            </Tabs>
+            <TabPanel value={createTabValue} index={0}>
+              <Create executeQuery={executeQuery} />
+            </TabPanel>
+            <TabPanel value={createTabValue} index={1}>
+              <CreateRelation executeQuery={executeQuery} />
+            </TabPanel>
+          </Box>
         </TabPanel>
         <TabPanel value={value} index={2}>
           <Update executeQuery={executeQuery} />
