@@ -25,6 +25,7 @@ function TabPanel(props) {
 function App() {
   const [value, setValue] = React.useState(0)
   const [createTabValue, setCreateTabValue] = React.useState(0)
+  const [readTabValue, setReadTabValue] = React.useState(0)
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -32,6 +33,10 @@ function App() {
 
   const handleCreateTabChange = (event, newValue) => {
     setCreateTabValue(newValue)
+  }
+
+  const handleReadTabChange = (event, newValue) => {
+    setReadTabValue(newValue)
   }
 
   const executeQuery = async (query) => {
@@ -64,7 +69,18 @@ function App() {
         </Tabs>
 
         <TabPanel value={value} index={0}>
-          <DatabaseManager executeQuery={executeQuery} />
+          <Box>
+            <Tabs value={readTabValue} onChange={handleReadTabChange}>
+              <Tab label="Operaciones de Lectura" />
+              <Tab label="Consultar Nodo" />
+            </Tabs>
+            <TabPanel value={readTabValue} index={0}>
+              <DatabaseManager executeQuery={executeQuery} showOnlyQueries={true} />
+            </TabPanel>
+            <TabPanel value={readTabValue} index={1}>
+              <DatabaseManager executeQuery={executeQuery} showOnlyConsulta={true} />
+            </TabPanel>
+          </Box>
         </TabPanel>
         <TabPanel value={value} index={1}>
           <Box>

@@ -47,6 +47,18 @@
   color: #888;
 }
 
+.text-field {
+  margin-bottom: 20px;
+}
+
+.specific-queries-section {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
 button {
   background-color: #4caf50;
   color: #ffffff;
