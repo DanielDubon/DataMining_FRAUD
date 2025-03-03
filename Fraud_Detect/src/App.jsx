@@ -62,7 +62,7 @@ function App() {
       <CssBaseline />
       <Container>
         <Tabs value={value} onChange={handleChange}>
-          <Tab label="Ver Datos" />
+          <Tab label="Leer" />
           <Tab label="Crear" />
           <Tab label="Actualizar" />
           <Tab label="Eliminar" />
@@ -73,12 +73,16 @@ function App() {
             <Tabs value={readTabValue} onChange={handleReadTabChange}>
               <Tab label="Operaciones de Lectura" />
               <Tab label="Consultar Nodo" />
+              <Tab label="Consultas Agregadas" />
             </Tabs>
             <TabPanel value={readTabValue} index={0}>
               <DatabaseManager executeQuery={executeQuery} showOnlyQueries={true} />
             </TabPanel>
             <TabPanel value={readTabValue} index={1}>
               <DatabaseManager executeQuery={executeQuery} showOnlyConsulta={true} />
+            </TabPanel>
+            <TabPanel value={readTabValue} index={2}>
+              <DatabaseManager executeQuery={executeQuery} showOnlyAggregates={true} />
             </TabPanel>
           </Box>
         </TabPanel>

@@ -16,7 +16,7 @@ function TabPanel(props) {
     );
 }
 
-function DatabaseManager({ executeQuery, showOnlyQueries, showOnlyConsulta }) {
+function DatabaseManager({ executeQuery, showOnlyQueries, showOnlyConsulta, showOnlyAggregates }) {
     const [results, setResults] = useState([]);
     const [error, setError] = useState('');
 
@@ -29,6 +29,14 @@ function DatabaseManager({ executeQuery, showOnlyQueries, showOnlyConsulta }) {
         transacciones: "MATCH (t:Transacción) RETURN toString(t.ID) as ID, t.Monto as Monto, t.Fecha as Fecha, t.Ubicacion as Ubicacion, t.Tipo as Tipo",
         relacionesClientes: "MATCH (c:Cliente)-[r]->(n) RETURN c.Nombre as Cliente, type(r) as Relacion, n.Nombre as Relacionado, n.Tipo as TipoRelacionado",
         consultarUnNodo: (tipo, propiedad, valor) => `MATCH (n:${tipo}) WHERE n.${propiedad} = $valor RETURN n`
+    };
+
+    const aggregateQueries = {
+        countClientes: "MATCH (c:Cliente) RETURN COUNT(c) as TotalClientes",
+        avgSaldoCuentas: "MATCH (c:Cuenta) RETURN AVG(c.Saldo) as PromedioSaldo",
+        sumTransacciones: "MATCH (t:Transacción) RETURN SUM(t.Monto) as TotalMonto",
+        maxTransaccion: "MATCH (t:Transacción) RETURN MAX(t.Monto) as MaximoMonto",
+        minTransaccion: "MATCH (t:Transacción) RETURN MIN(t.Monto) as MinimoMonto"
     };
 
     const handleQuery = async (query, params = {}) => {
@@ -108,14 +116,45 @@ function DatabaseManager({ executeQuery, showOnlyQueries, showOnlyConsulta }) {
         }
     };
 
+    const handleAggregateQuery = async (query) => {
+        if (!query) {
+            setError('Por favor, selecciona una consulta agregada válida.');
+            return;
+        }
+
+        const session = driver.session();
+        try {
+            const cypherQuery = aggregateQueries[query];
+            const result = await session.run(cypherQuery);
+            // Formatear el resultado para mostrar solo el valor numérico
+            const formattedResults = result.records.map(record => {
+                const value = record.get(Object.keys(record.toObject())[0]);
+                return {
+                    [Object.keys(record.toObject())[0]]: typeof value === 'object' && value.hasOwnProperty('low') 
+                        ? value.low 
+                        : value
+                };
+            });
+            setResults(formattedResults);
+            setError('');
+        } catch (err) {
+            console.error('Error al ejecutar la consulta agregada:', err);
+            setError(err.message);
+        } finally {
+            await session.close();
+        }
+    };
+
     return (
         <Read 
             executeQuery={handleQuery} 
             consultarUnNodo={showOnlyConsulta ? handleConsultarUnNodo : undefined} 
+            handleAggregateQuery={showOnlyAggregates ? handleAggregateQuery : undefined} 
             results={results} 
             error={error}
             showOnlyQueries={showOnlyQueries} 
             showOnlyConsulta={showOnlyConsulta} 
+            showOnlyAggregates={showOnlyAggregates} 
         />
     );
 }

@@ -19,12 +19,13 @@ import {
     Radio
 } from '@mui/material';
 
-function Read({ executeQuery, consultarUnNodo, results, error, showOnlyQueries, showOnlyConsulta }) {
+function Read({ executeQuery, consultarUnNodo, handleAggregateQuery, results, error, showOnlyQueries, showOnlyConsulta, showOnlyAggregates }) {
     const [selectedQuery, setSelectedQuery] = useState('');
     const [tipoNodo, setTipoNodo] = useState('clientes');
     const [propiedad, setPropiedad] = useState('');
     const [valor, setValor] = useState('');
     const [hasSearched, setHasSearched] = useState(false);
+    const [selectedAggregateQuery, setSelectedAggregateQuery] = useState('');
 
     // Mapeo de propiedades por tipo de nodo
     const propiedadesPorTipo = {
@@ -139,6 +140,35 @@ function Read({ executeQuery, consultarUnNodo, results, error, showOnlyQueries, 
                         style={{ marginBottom: '20px' }}
                     >
                         Consultar un Nodo
+                    </Button>
+                </>
+            )}
+
+            {showOnlyAggregates && (
+                <>
+                    <Typography variant="h5" gutterBottom style={{ color: '#333', fontWeight: 'bold', marginBottom: '20px' }}>
+                        Operaciones Agregadas
+                    </Typography>
+                    <FormControl fullWidth style={{ marginBottom: '20px' }}>
+                        <InputLabel>Selecciona una consulta agregada</InputLabel>
+                        <Select
+                            value={selectedAggregateQuery}
+                            onChange={(e) => setSelectedAggregateQuery(e.target.value)}
+                        >
+                            <MenuItem value="countClientes">Contar Clientes</MenuItem>
+                            <MenuItem value="avgSaldoCuentas">Promedio de Saldo de Cuentas</MenuItem>
+                            <MenuItem value="sumTransacciones">Suma de Montos de Transacciones</MenuItem>
+                            <MenuItem value="maxTransaccion">Máximo Monto de Transacción</MenuItem>
+                            <MenuItem value="minTransaccion">Mínimo Monto de Transacción</MenuItem>
+                        </Select>
+                    </FormControl>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => handleAggregateQuery(selectedAggregateQuery)}
+                        style={{ marginBottom: '20px' }}
+                    >
+                        Ejecutar Consulta Agregada
                     </Button>
                 </>
             )}
