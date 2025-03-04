@@ -97,7 +97,13 @@ function Create({ executeQuery }) {
 
     const handlePropertyChange = (nodeName, propertyName, value) => {
         let processedValue = value;
-        if (propertyName === 'ID' || propertyName === 'DPI') {
+        
+        // Procesar valores numéricos
+        if (nodeTypes[nodeName].properties[propertyName].type === 'number') {
+            processedValue = value === '' ? '' : Number(value);
+        }
+        // Mantener el procesamiento especial para ID y DPI
+        else if (propertyName === 'ID' || propertyName === 'DPI') {
             processedValue = value === '' ? '' : parseInt(value, 10);
         }
 
@@ -138,16 +144,20 @@ function Create({ executeQuery }) {
 
             const properties = Object.entries(nodeData.properties)
                 .map(([key, value]) => {
+                    // Si es una fecha
                     if (nodeTypes[nodeName].properties[key].type === 'date' ||
                         nodeTypes[nodeName].properties[key].type === 'datetime') {
                         return `${key}: date('${value}')`;
                     }
-                    if (key === 'ID' || key === 'DPI') {
+                    // Si es un número (incluyendo ID, DPI, NivelRiesgo, etc.)
+                    if (nodeTypes[nodeName].properties[key].type === 'number') {
                         return `${key}: ${value}`;
                     }
+                    // Si es un string
                     if (typeof value === 'string') {
                         return `${key}: '${value}'`;
                     }
+                    // Para booleanos u otros tipos
                     return `${key}: ${value}`;
                 })
                 .join(', ');

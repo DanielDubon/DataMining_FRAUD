@@ -19,6 +19,7 @@ import {
 import CreateRelation from './components/CreateRelation'
 import lupaGif from './assets/lupa.gif'
 import FraudDetection from './components/FraudDetection'
+import BulkProperties from './components/BulkProperties'
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props
@@ -256,8 +257,9 @@ function App() {
                     }
                   }}
                 >
-                  <Tab label="Crear Nodos" />
-                  <Tab label="Crear Relaciones" />
+                  <Tab label="CREAR NODOS" />
+                  <Tab label="CREAR RELACIONES" />
+                  <Tab label="AGREGAR PROPIEDADES MASIVAS" />
                 </Tabs>
               </Paper>
             )}
@@ -459,6 +461,21 @@ function App() {
                   mt: 0
                 }}>
                   <CreateRelation 
+                    executeQuery={executeQuery}
+                    sx={{
+                      '& .MuiPaper-root': {
+                        p: 2,
+                        mt: 0,
+                        textAlign: 'left'
+                      }
+                    }}
+                  />
+                </TabPanel>
+                <TabPanel value={createTabValue} index={2} sx={{ 
+                  p: 0,
+                  mt: 0
+                }}>
+                  <BulkProperties 
                     executeQuery={executeQuery}
                     sx={{
                       '& .MuiPaper-root': {
