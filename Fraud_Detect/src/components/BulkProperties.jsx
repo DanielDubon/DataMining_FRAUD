@@ -9,13 +9,17 @@ import {
     TextField,
     Button,
     Grid,
-    Alert
+    Alert,
+    IconButton,
+    Box
 } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 function BulkProperties({ executeQuery }) {
     const [nodeType, setNodeType] = useState('');
-    const [bulkProperties, setBulkProperties] = useState({});
     const [conditions, setConditions] = useState({});
+    const [newProperties, setNewProperties] = useState([{ name: '', value: '' }]);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
@@ -57,11 +61,23 @@ function BulkProperties({ executeQuery }) {
         }
     };
 
-    const handleBulkPropertyChange = (field, value) => {
-        setBulkProperties(prev => ({
-            ...prev,
-            [field]: value
-        }));
+    const addNewPropertyField = () => {
+        setNewProperties([...newProperties, { name: '', value: '' }]);
+    };
+
+    const removePropertyField = (index) => {
+        const updatedProperties = newProperties.filter((_, i) => i !== index);
+        setNewProperties(updatedProperties);
+    };
+
+    const handlePropertyChange = (index, field, value) => {
+        const updatedProperties = newProperties.map((prop, i) => {
+            if (i === index) {
+                return { ...prop, [field]: value };
+            }
+            return prop;
+        });
+        setNewProperties(updatedProperties);
     };
 
     const handleBulkSubmit = async () => {
@@ -71,11 +87,9 @@ function BulkProperties({ executeQuery }) {
                 conditions_string = 'WHERE ' + Object.entries(conditions)
                     .filter(([_, value]) => value !== '')
                     .map(([key, value]) => {
-                        const propType = nodeTypes[nodeType].properties[key].type;
+                        const propType = nodeTypes[nodeType].properties[key]?.type;
                         if (propType === 'number') {
                             return `n.${key} = ${parseInt(value)}`;
-                        } else if (propType === 'boolean') {
-                            return `n.${key} = ${value.toLowerCase() === 'true'}`;
                         } else {
                             return `n.${key} = '${value}'`;
                         }
@@ -83,18 +97,24 @@ function BulkProperties({ executeQuery }) {
                     .join(' AND ');
             }
 
+            // Construir la parte SET de la consulta para múltiples propiedades
+            const setClause = newProperties
+                .filter(prop => prop.name && prop.value) // Solo incluir propiedades con nombre y valor
+                .map(prop => `n.${prop.name} = '${prop.value}'`)
+                .join(', ');
+
             const query = `
                 MATCH (n:${nodeType}) 
                 ${conditions_string}
-                SET n.${bulkProperties.newPropName} = '${bulkProperties.newPropValue}'
+                SET ${setClause}
                 RETURN count(n) as affected
             `;
 
             console.log('Query:', query);
             const result = await executeQuery(query);
             const affectedNodes = result.records[0].get('affected').low;
-            setSuccess(`Propiedad agregada a ${affectedNodes} nodo(s)`);
-            setBulkProperties({});
+            setSuccess(`Propiedades agregadas a ${affectedNodes} nodo(s)`);
+            setNewProperties([{ name: '', value: '' }]);
             setConditions({});
         } catch (err) {
             setError('Error al agregar propiedades: ' + err.message);
@@ -126,7 +146,7 @@ function BulkProperties({ executeQuery }) {
                     <>
                         <Grid item xs={12}>
                             <Typography variant="subtitle1">
-                                Condiciones (opcional)
+                                Condiciones de Búsqueda (opcional)
                             </Typography>
                             {Object.entries(nodeTypes[nodeType].properties).map(([propName, propConfig]) => (
                                 <TextField
@@ -147,20 +167,38 @@ function BulkProperties({ executeQuery }) {
                             <Typography variant="subtitle1">
                                 Nuevas Propiedades
                             </Typography>
-                            <TextField
-                                fullWidth
-                                label="Nombre de la Nueva Propiedad"
-                                value={bulkProperties.newPropName || ''}
-                                onChange={(e) => handleBulkPropertyChange('newPropName', e.target.value)}
-                                style={{ marginTop: '10px' }}
-                            />
-                            <TextField
-                                fullWidth
-                                label="Valor de la Nueva Propiedad"
-                                value={bulkProperties.newPropValue || ''}
-                                onChange={(e) => handleBulkPropertyChange('newPropValue', e.target.value)}
-                                style={{ marginTop: '10px' }}
-                            />
+                            {newProperties.map((prop, index) => (
+                                <Box key={index} sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                                    <TextField
+                                        label="Nombre de la Propiedad"
+                                        value={prop.name}
+                                        onChange={(e) => handlePropertyChange(index, 'name', e.target.value)}
+                                        sx={{ flex: 1 }}
+                                    />
+                                    <TextField
+                                        label="Valor de la Propiedad"
+                                        value={prop.value}
+                                        onChange={(e) => handlePropertyChange(index, 'value', e.target.value)}
+                                        sx={{ flex: 1 }}
+                                    />
+                                    {newProperties.length > 1 && (
+                                        <IconButton 
+                                            onClick={() => removePropertyField(index)}
+                                            color="error"
+                                        >
+                                            <DeleteIcon />
+                                        </IconButton>
+                                    )}
+                                </Box>
+                            ))}
+                            <Button
+                                startIcon={<AddIcon />}
+                                onClick={addNewPropertyField}
+                                variant="outlined"
+                                sx={{ mt: 1 }}
+                            >
+                                Agregar Otra Propiedad
+                            </Button>
                         </Grid>
                     </>
                 )}
@@ -170,7 +208,7 @@ function BulkProperties({ executeQuery }) {
                         variant="contained"
                         color="primary"
                         onClick={handleBulkSubmit}
-                        disabled={!nodeType || !bulkProperties.newPropName || !bulkProperties.newPropValue}
+                        disabled={!nodeType || !newProperties.some(prop => prop.name && prop.value)}
                     >
                         Agregar Propiedades
                     </Button>
