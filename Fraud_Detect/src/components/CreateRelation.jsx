@@ -69,7 +69,7 @@ function CreateRelation({ executeQuery }) {
                 UltimoUso: { type: 'date', required: true }
             }
         },
-        // ... Agregar más tipos de relaciones según necesites
+       
     };
 
     const getNextId = async (relationType) => {
@@ -176,7 +176,7 @@ function CreateRelation({ executeQuery }) {
                 })
                 .join(', ');
 
-            // Modificamos la consulta para mostrar el DPI o ID según corresponda
+           
             const query = `
                 MATCH (a:${relationTypes[relationType].sourceLabel})
                 WHERE a.DPI = '${sourceNode.dpi}' OR toString(a.ID) = '${sourceNode.id}'
@@ -221,7 +221,6 @@ function CreateRelation({ executeQuery }) {
 
     const handleBulkSubmit = async () => {
         try {
-            // Construir la cláusula WHERE para las condiciones
             const whereConditions = Object.entries(bulkConditions)
                 .filter(([_, value]) => value !== '')
                 .map(([key, value]) => {
@@ -230,7 +229,6 @@ function CreateRelation({ executeQuery }) {
                 })
                 .join(' AND ');
 
-            // Corregimos la construcción del SET para usar el nombre de propiedad dinámico
             const propertyName = bulkProperties.newPropName;
             const propertyValue = bulkProperties.newPropValue;
             const setClause = `r.${propertyName} = ${isNaN(propertyValue) ? `'${propertyValue}'` : propertyValue}`;
@@ -332,7 +330,7 @@ function CreateRelation({ executeQuery }) {
                                     options={targetOptions}
                                     getOptionLabel={(option) => option?.label || ''}
                                     isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                                    filterOptions={(x) => x} // Deshabilitar el filtrado interno
+                                    filterOptions={(x) => x}
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
@@ -353,8 +351,8 @@ function CreateRelation({ executeQuery }) {
                                                 onChange={(e) => handlePropertyChange(propName, e.target.value)}
                                                 required={propConfig.required}
                                             >
-                                                <MenuItem value={true}>Sí</MenuItem>
-                                                <MenuItem value={false}>No</MenuItem>
+                                                <MenuItem value={true}>Activa</MenuItem>
+                                                <MenuItem value={false}>Inactiva</MenuItem>
                                             </Select>
                                         </FormControl>
                                     ) : (
