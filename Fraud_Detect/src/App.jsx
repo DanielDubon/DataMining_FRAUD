@@ -17,6 +17,7 @@ import {
   Paper
 } from '@mui/material'
 import CreateRelation from './components/CreateRelation'
+import lupaGif from './assets/lupa.gif'
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props
@@ -115,9 +116,11 @@ function App() {
             <Toolbar sx={{ 
               height: { xs: '80px', md: '120px' },
               display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center'
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              px: 3
             }}>
+              <Box sx={{ width: '50px' }} />
               <Typography 
                 variant="h3" 
                 component="div" 
@@ -134,6 +137,16 @@ function App() {
               >
                 FRAUD DETECTOR
               </Typography>
+              <img 
+                src={lupaGif} 
+                alt="Search" 
+                style={{
+                  height: '60px',
+                  width: '60px',
+                  objectFit: 'contain',
+                  marginRight: '10px'
+                }}
+              />
             </Toolbar>
           </AppBar>
 
