@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Paper } from '@mui/material';
+import { Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 
 function FraudDetection({ executeQuery, tabValue }) {
     const [results, setResults] = useState([]);
@@ -53,18 +53,33 @@ function FraudDetection({ executeQuery, tabValue }) {
     }, [tabValue, executeQuery]);
 
     return (
-        <Box sx={{ display: 'flex' }}>
-            <Box sx={{ flexGrow: 1 }}>
-                <Typography variant="h4" gutterBottom>
-                    Detección de Fraude
-                </Typography>
-                {error && <Typography color="error">{error}</Typography>}
-                <Box>
-                    {results.map((result, index) => (
-                        <Typography key={index}>{JSON.stringify(result)}</Typography>
-                    ))}
-                </Box>
-            </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant="h4" gutterBottom>
+                Detección de Fraude
+            </Typography>
+            {error && <Typography color="error">{error}</Typography>}
+            <TableContainer component={Paper}>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            {/* Renderizar las cabeceras dinámicamente según las columnas disponibles */}
+                            {results.length > 0 && Object.keys(results[0]).map((key) => (
+                                <TableCell key={key}>{key}</TableCell>
+                            ))}
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {results.map((result, index) => (
+                            <TableRow key={index}>
+                                {/* Renderizar las celdas dinámicamente según las columnas disponibles */}
+                                {Object.values(result).map((value, idx) => (
+                                    <TableCell key={idx}>{value}</TableCell>
+                                ))}
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
         </Box>
     );
 }

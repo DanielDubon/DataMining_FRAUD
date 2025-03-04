@@ -31,13 +31,6 @@ function DatabaseManager({ executeQuery, showOnlyQueries, showOnlyConsulta, show
         consultarUnNodo: (tipo, propiedad, valor) => `MATCH (n:${tipo}) WHERE n.${propiedad} = $valor RETURN n`,
         buscarPropietarioDispositivo: "MATCH (p:Persona)-[:USA]->(d:Dispositivo {ID: $valor}) RETURN p.Nombre as Nombre, p.DPI as DPI, d.ID as DispositivoID",
         buscarPropietarioTransaccion: "MATCH (cu:Cuenta)-[:REALIZA]->(t:Transacción {ID: $valor}) RETURN cu.ID as CuentaID, t.ID as TransaccionID",
-        buscarCuentaTransaccion: "MATCH (cu:Cuenta)-[:REALIZA]->(t:Transacción {ID: $valor}) RETURN cu.ID as CuentaID, t.ID as TransaccionID",
-        buscarDispositivoTransaccion: "MATCH (d:Dispositivo)-[:REALIZADA_DESDE]->(t:Transacción {ID: $valor}) RETURN d.ID as DispositivoID, t.ID as TransaccionID",
-        buscarRelacionPersonas: "MATCH (p1:Persona)-[r:RELACIONADO_CON]->(p2:Persona {ID: $valor}) RETURN p1.Nombre as Nombre1, p2.Nombre as Nombre2, r.TipoRelacion as TipoRelacion",
-        buscarVisitasEstablecimiento: "MATCH (p:Persona)-[:VISITA]->(e:Establecimiento {ID: $valor}) RETURN p.Nombre as Nombre, e.Nombre as Establecimiento",
-        buscarPagosEstablecimiento: "MATCH (e:Establecimiento)-[:RECIBE_PAGO]->(cu:Cuenta {ID: $valor}) RETURN e.Nombre as Establecimiento, cu.ID as CuentaID",
-        buscarTransferenciasCuenta: "MATCH (cu1:Cuenta)-[:TRANSFERENCIA]->(cu2:Cuenta {ID: $valor}) RETURN cu1.ID as CuentaOrigen, cu2.ID as CuentaDestino",
-        buscarAutorizacionesCuenta: "MATCH (cu:Cuenta)-[:AUTORIZADA_POR]->(p:Persona {ID: $valor}) RETURN cu.ID as CuentaID, p.Nombre as Autorizador"
     };
 
     const aggregateQueries = {
@@ -62,12 +55,19 @@ function DatabaseManager({ executeQuery, showOnlyQueries, showOnlyConsulta, show
     const advancedQueries = {
         buscarTransaccionPorID: "MATCH (p:Persona)-[:POSEE]->(c:Cuenta)-[:REALIZA]->(t:Transacción {ID: $valor}) RETURN p.Nombre, p.DPI",
         buscarPropietarioDispositivo: "MATCH (p:Persona)-[:USA]->(d:Dispositivo {ID: $valor}) RETURN p.Nombre as Nombre, p.DPI as DPI, d.ID as DispositivoID, d.FrecuenciaUso as FrecuenciaUso, d.UltimoUso as UltimoUso",
+        buscarVisitasEstablecimiento: "MATCH (p:Persona)-[:VISITA]->(e:Establecimiento {ID: $valor}) RETURN p.Nombre as Nombre, e.Nombre as Establecimiento",
     };
 
-    const handleQuery = async (query, params) => {
+    const handleQuery = async (query, params = {}) => {
+        if (!query) {
+            setError('Por favor, proporciona una consulta válida.');
+            return;
+        }
+
         const session = driver.session();
         try {
-            const cypherQuery = advancedQueries[query];
+            // Verificar si la consulta es predefinida o avanzada
+            const cypherQuery = predefinedQueries[query] || advancedQueries[query] || query;
             const result = await session.run(cypherQuery, params);
             const formattedResults = result.records.map(record => record.toObject());
             setResults(formattedResults);
@@ -81,14 +81,13 @@ function DatabaseManager({ executeQuery, showOnlyQueries, showOnlyConsulta, show
     };
 
     const handleConsultarUnNodo = async (tipo, propiedad, valor) => {
-        // Convertir el tipo de nodo a formato correcto (primera letra mayúscula)
         const tipoNodo = tipo.charAt(0).toUpperCase() + tipo.slice(1, -1);
         
         let returnClause;
         switch(tipoNodo) {
             case 'Cliente':
                 returnClause = `n.Nombre as Nombre, 
-                               n.FechaNacimiento as FechaNacimiento, 
+                               (n.FechaNacimiento) as FechaNacimiento, 
                                n.Direccion as Direccion, 
                                toString(n.DPI) as DPI, 
                                toString(n.NivelRiesgo) as NivelRiesgo`;
@@ -114,8 +113,15 @@ function DatabaseManager({ executeQuery, showOnlyQueries, showOnlyConsulta, show
                                n.Tipo as Tipo, 
                                toString(n.NivelRiesgo) as NivelRiesgo`;
                 break;
+            case 'Persona':
+                returnClause = `n.DPI as DPI, 
+                                n.Nombre as Nombre, 
+                                n.FechaNacimiento as FechaNacimiento, 
+                                n.Direccion as Direccion, 
+                                n.NivelRiesgo as NivelRiesgo`;
+                break;
             case 'Transacción':
-                returnClause = `toString(n.ID) as ID, 
+                returnClause = `n.ID as ID, 
                                n.Monto as Monto, 
                                n.Fecha as Fecha, 
                                n.Ubicacion as Ubicacion, 
@@ -126,10 +132,10 @@ function DatabaseManager({ executeQuery, showOnlyQueries, showOnlyConsulta, show
         }
 
         const query = `MATCH (n:${tipoNodo}) 
-                      WHERE toString(n.${propiedad}) = '${valor}' 
-                      RETURN ${returnClause}`;
+                       WHERE toString(n.${propiedad}) = '${valor}'  
+                       RETURN ${returnClause}`;
         try {
-            await handleQuery(query, { valor });
+            await handleQuery(query);
         } catch (err) {
             setError('Error al consultar el nodo: ' + err.message);
         }

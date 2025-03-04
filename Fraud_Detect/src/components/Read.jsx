@@ -92,9 +92,6 @@ function Read({ executeQuery, consultarUnNodo, handleAggregateQuery, handleFilte
                             <MenuItem value="establecimientos">Ver Establecimientos</MenuItem>
                             <MenuItem value="personas">Ver Personas</MenuItem>
                             <MenuItem value="transacciones">Ver Transacciones</MenuItem>
-                            <MenuItem value="relacionesClientes">Ver Relaciones de Clientes</MenuItem>
-                            <MenuItem value="buscarPropietarioDispositivo">Buscar Propietario de Dispositivo</MenuItem>
-                            <MenuItem value="buscarPropietarioTransaccion">Buscar Propietario de Transacción</MenuItem>
                         </Select>
                     </FormControl>
                     <Button
@@ -233,12 +230,7 @@ function Read({ executeQuery, consultarUnNodo, handleAggregateQuery, handleFilte
                         >
                             <MenuItem value="buscarPropietarioDispositivo">Buscar Propietario de Dispositivo</MenuItem>
                             <MenuItem value="buscarTransaccionPorID">Buscar Responsable de Transacción</MenuItem>
-                            <MenuItem value="buscarEstablecimientoPorID">Buscar Establecimiento por ID</MenuItem>
                             <MenuItem value="buscarVisitasEstablecimiento">Buscar Visitas a Establecimiento</MenuItem>
-                            <MenuItem value="buscarPagosEstablecimiento">Buscar Pagos a Establecimiento</MenuItem>
-                            <MenuItem value="buscarTransferenciasCuenta">Buscar Transferencias entre Cuentas</MenuItem>
-                            <MenuItem value="buscarAutorizacionesCuenta">Buscar Autorizaciones de Cuenta</MenuItem>
-                            <MenuItem value="buscarRelacionPersonas">Buscar Relaciones entre Personas</MenuItem>
                         </Select>
                     </FormControl>
                     <TextField
