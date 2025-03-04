@@ -27,6 +27,7 @@ function Read({ executeQuery, consultarUnNodo, handleAggregateQuery, handleFilte
     const [valor, setValor] = useState('');
     const [hasSearched, setHasSearched] = useState(false);
     const [selectedAggregateQuery, setSelectedAggregateQuery] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     // Mapeo de propiedades por tipo de nodo
     const propiedadesPorTipo = {
@@ -55,13 +56,15 @@ function Read({ executeQuery, consultarUnNodo, handleAggregateQuery, handleFilte
     };
 
     const handleConsultarUnNodo = () => {
+        setIsLoading(true);
         setHasSearched(true);
-        consultarUnNodo(tipoNodo, propiedad, valor);
+        consultarUnNodo(tipoNodo, propiedad, valor).finally(() => setIsLoading(false));
     };
 
     const handleExecuteQuery = () => {
+        setIsLoading(true);
         setHasSearched(true);
-        executeQuery(selectedQuery);
+        executeQuery(selectedQuery).finally(() => setIsLoading(false));
     };
 
     return (
@@ -214,7 +217,9 @@ function Read({ executeQuery, consultarUnNodo, handleAggregateQuery, handleFilte
                     {error}
                 </Typography>
             )}
-            {results.length > 0 ? (
+            {isLoading ? (
+                <Typography>Cargando...</Typography>
+            ) : results.length > 0 ? (
                 <TableContainer>
                     <Table>
                         <TableHead>
