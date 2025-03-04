@@ -261,7 +261,66 @@ function App() {
                 </Tabs>
               </Paper>
             )}
-
+            {/* Menú Lateral para ACTUALIZAR */}
+            {value === 2 && (
+              <Paper 
+              elevation={2} 
+              sx={{ 
+                width: '250px',
+                flexShrink: 0,
+                position: 'fixed',
+                top: '180px',
+                height: 'auto',
+                overflowY: 'auto'
+              }}
+            >
+              <Tabs
+                value={createTabValue}
+                onChange={handleCreateTabChange}
+                orientation="vertical"
+                variant="scrollable"
+                sx={{
+                  '& .MuiTab-root': {
+                    alignItems: 'flex-start',
+                    textAlign: 'left',
+                    py: 2
+                  }
+                }}
+              >
+                <Tab label="Actualizar Propiedades de nodos y sus relaciones" />
+              </Tabs>
+            </Paper>
+          )}
+              {/* Menú Lateral para BORRAR */}
+              {value === 3 && (
+              <Paper 
+              elevation={2} 
+              sx={{ 
+                width: '250px',
+                flexShrink: 0,
+                position: 'fixed',
+                top: '180px',
+                height: 'auto',
+                overflowY: 'auto'
+              }}
+            >
+              <Tabs
+                value={createTabValue}
+                onChange={handleCreateTabChange}
+                orientation="vertical"
+                variant="scrollable"
+                sx={{
+                  '& .MuiTab-root': {
+                    alignItems: 'flex-start',
+                    textAlign: 'left',
+                    py: 2
+                  }
+                }}
+              >
+                <Tab label="Eliminar Propiedades de nodos y sus relaciones" />
+              </Tabs>
+            </Paper>
+          )}
             {/* Menú Lateral para DETECCIÓN DE FRAUDE */}
             {value === 4 && (
               <Paper 
