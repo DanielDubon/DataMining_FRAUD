@@ -16,7 +16,7 @@ function TabPanel(props) {
     );
 }
 
-function DatabaseManager({ executeQuery, showOnlyQueries, showOnlyConsulta, showOnlyAggregates }) {
+function DatabaseManager({ executeQuery, showOnlyQueries, showOnlyConsulta, showOnlyAggregates, showOnlyFilters }) {
     const [results, setResults] = useState([]);
     const [error, setError] = useState('');
 
@@ -36,7 +36,18 @@ function DatabaseManager({ executeQuery, showOnlyQueries, showOnlyConsulta, show
         avgSaldoCuentas: "MATCH (c:Cuenta) RETURN AVG(c.Saldo) as PromedioSaldo",
         sumTransacciones: "MATCH (t:Transacción) RETURN SUM(t.Monto) as TotalMonto",
         maxTransaccion: "MATCH (t:Transacción) RETURN MAX(t.Monto) as MaximoMonto",
-        minTransaccion: "MATCH (t:Transacción) RETURN MIN(t.Monto) as MinimoMonto"
+        minTransaccion: "MATCH (t:Transacción) RETURN MIN(t.Monto) as MinimoMonto",
+        maxNivelRiesgo: "MATCH (c:Cliente) RETURN c.Nombre as Nombre, c.DPI as DPI, c.NivelRiesgo as NivelRiesgo ORDER BY c.NivelRiesgo DESC LIMIT 1",
+        minNivelRiesgo: "MATCH (c:Cliente) RETURN c.Nombre as Nombre, c.DPI as DPI, c.NivelRiesgo as NivelRiesgo ORDER BY c.NivelRiesgo ASC LIMIT 1"
+    };
+
+    const filterQueries = {
+        clientesAltoRiesgo: "MATCH (c:Cliente) WHERE toFloat(c.NivelRiesgo) > 2 RETURN c.Nombre as Nombre, c.DPI as DPI, c.NivelRiesgo as NivelRiesgo, c.FechaNacimiento as FechaNacimiento, c.Direccion as Direccion",
+        clientesBajoRiesgo: "MATCH (c:Cliente) WHERE toFloat(c.NivelRiesgo) < 2 RETURN c.Nombre as Nombre, c.DPI as DPI, c.NivelRiesgo as NivelRiesgo, c.FechaNacimiento as FechaNacimiento, c.Direccion as Direccion",
+        transaccionesAltoMonto: "MATCH (t:Transacción) WHERE toFloat(t.Monto) > 3500 RETURN t.ID as ID, t.Monto as Monto, t.Fecha as Fecha, t.Tipo as Tipo, t.Ubicacion as Ubicacion",
+        transaccionesBajoMonto: "MATCH (t:Transacción) WHERE toFloat(t.Monto) < 1000 RETURN t.ID as ID, t.Monto as Monto, t.Fecha as Fecha, t.Tipo as Tipo, t.Ubicacion as Ubicacion",
+        cuentasInactivas: "MATCH (c:Cuenta) WHERE c.Estado = false RETURN c.ID as ID, c.Tipo as Tipo, c.Saldo as Saldo, c.FechaCreacion as FechaCreacion, c.Estado as Estado",
+        establecimientosRiesgosos: "MATCH (e:Establecimiento) WHERE toFloat(e.NivelRiesgo) > 2 RETURN e.ID as ID, e.Nombre as Nombre, e.Ubicacion as Ubicacion, e.Tipo as Tipo, e.NivelRiesgo as NivelRiesgo"
     };
 
     const handleQuery = async (query, params = {}) => {
@@ -126,15 +137,7 @@ function DatabaseManager({ executeQuery, showOnlyQueries, showOnlyConsulta, show
         try {
             const cypherQuery = aggregateQueries[query];
             const result = await session.run(cypherQuery);
-            // Formatear el resultado para mostrar solo el valor numérico
-            const formattedResults = result.records.map(record => {
-                const value = record.get(Object.keys(record.toObject())[0]);
-                return {
-                    [Object.keys(record.toObject())[0]]: typeof value === 'object' && value.hasOwnProperty('low') 
-                        ? value.low 
-                        : value
-                };
-            });
+            const formattedResults = result.records.map(record => record.toObject());
             setResults(formattedResults);
             setError('');
         } catch (err) {
@@ -145,16 +148,39 @@ function DatabaseManager({ executeQuery, showOnlyQueries, showOnlyConsulta, show
         }
     };
 
+    const handleFilterQuery = async (query) => {
+        if (!query) {
+            setError('Por favor, selecciona un filtro válido.');
+            return;
+        }
+
+        const session = driver.session();
+        try {
+            const cypherQuery = filterQueries[query];
+            const result = await session.run(cypherQuery);
+            const formattedResults = result.records.map(record => record.toObject());
+            setResults(formattedResults);
+            setError('');
+        } catch (err) {
+            console.error('Error al ejecutar la consulta filtrada:', err);
+            setError(err.message);
+        } finally {
+            await session.close();
+        }
+    };
+
     return (
         <Read 
             executeQuery={handleQuery} 
             consultarUnNodo={showOnlyConsulta ? handleConsultarUnNodo : undefined} 
-            handleAggregateQuery={showOnlyAggregates ? handleAggregateQuery : undefined} 
+            handleAggregateQuery={showOnlyAggregates ? handleAggregateQuery : undefined}
+            handleFilterQuery={showOnlyFilters ? handleFilterQuery : undefined} 
             results={results} 
             error={error}
             showOnlyQueries={showOnlyQueries} 
             showOnlyConsulta={showOnlyConsulta} 
-            showOnlyAggregates={showOnlyAggregates} 
+            showOnlyAggregates={showOnlyAggregates}
+            showOnlyFilters={showOnlyFilters} 
         />
     );
 }

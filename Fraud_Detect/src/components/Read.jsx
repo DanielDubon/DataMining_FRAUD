@@ -19,8 +19,9 @@ import {
     Radio
 } from '@mui/material';
 
-function Read({ executeQuery, consultarUnNodo, handleAggregateQuery, results, error, showOnlyQueries, showOnlyConsulta, showOnlyAggregates }) {
+function Read({ executeQuery, consultarUnNodo, handleAggregateQuery, handleFilterQuery, results, error, showOnlyQueries, showOnlyConsulta, showOnlyAggregates, showOnlyFilters }) {
     const [selectedQuery, setSelectedQuery] = useState('');
+    const [selectedFilterQuery, setSelectedFilterQuery] = useState('');
     const [tipoNodo, setTipoNodo] = useState('clientes');
     const [propiedad, setPropiedad] = useState('');
     const [valor, setValor] = useState('');
@@ -42,6 +43,9 @@ function Read({ executeQuery, consultarUnNodo, handleAggregateQuery, results, er
             return 'N/A';
         }
         if (typeof value === 'object' && value !== null) {
+            if ('low' in value && 'high' in value) {
+                return value.low + (value.high * Math.pow(2, 32)); // Convertir a número
+            }
             if ('year' in value) {
                 return `${value.year}-${value.month}-${value.day} ${value.hour}:${value.minute}:${value.second}`;
             }
@@ -135,7 +139,7 @@ function Read({ executeQuery, consultarUnNodo, handleAggregateQuery, results, er
                     />
                     <Button
                         variant="contained"
-                        color="secondary"
+                        color="primary"
                         onClick={handleConsultarUnNodo}
                         style={{ marginBottom: '20px' }}
                     >
@@ -160,6 +164,8 @@ function Read({ executeQuery, consultarUnNodo, handleAggregateQuery, results, er
                             <MenuItem value="sumTransacciones">Suma de Montos de Transacciones</MenuItem>
                             <MenuItem value="maxTransaccion">Máximo Monto de Transacción</MenuItem>
                             <MenuItem value="minTransaccion">Mínimo Monto de Transacción</MenuItem>
+                            <MenuItem value="maxNivelRiesgo">Cliente con Máximo Nivel de Riesgo</MenuItem>
+                            <MenuItem value="minNivelRiesgo">Cliente con Mínimo Nivel de Riesgo</MenuItem>
                         </Select>
                     </FormControl>
                     <Button
@@ -169,6 +175,36 @@ function Read({ executeQuery, consultarUnNodo, handleAggregateQuery, results, er
                         style={{ marginBottom: '20px' }}
                     >
                         Ejecutar Consulta Agregada
+                    </Button>
+                </>
+            )}
+
+            {showOnlyFilters && (
+                <>
+                    <Typography variant="h5" gutterBottom style={{ color: '#333', fontWeight: 'bold', marginBottom: '20px' }}>
+                        Consultas Filtradas
+                    </Typography>
+                    <FormControl fullWidth style={{ marginBottom: '20px' }}>
+                        <InputLabel>Selecciona un filtro</InputLabel>
+                        <Select
+                            value={selectedFilterQuery}
+                            onChange={(e) => setSelectedFilterQuery(e.target.value)}
+                        >
+                            <MenuItem value="clientesAltoRiesgo">Clientes con Alto Riesgo (mayor a 2)</MenuItem>
+                            <MenuItem value="clientesBajoRiesgo">Clientes con Bajo Riesgo (menor a 2)</MenuItem>
+                            <MenuItem value="transaccionesAltoMonto">Transacciones de Alto Monto (mayor a 3500)</MenuItem>
+                            <MenuItem value="transaccionesBajoMonto">Transacciones de Bajo Monto (menor a 1000)</MenuItem>
+                            <MenuItem value="cuentasInactivas">Cuentas Inactivas</MenuItem>
+                            <MenuItem value="establecimientosRiesgosos">Establecimientos Riesgosos (&gt;2)</MenuItem>
+                        </Select>
+                    </FormControl>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => handleFilterQuery(selectedFilterQuery)}
+                        style={{ marginBottom: '20px' }}
+                    >
+                        Aplicar Filtro
                     </Button>
                 </>
             )}
