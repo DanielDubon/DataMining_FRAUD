@@ -1,7 +1,7 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
   text-align: center;
   background-color: #f7f9fc;
   border-radius: 12px;
@@ -160,4 +160,93 @@ button:active {
   color: #ff0000;
   margin-top: 10px;
   font-weight: bold;
+}
+
+/* Hacer que el contenido principal sea scrolleable */
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Estilos para el contenedor principal */
+.container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* Ajustes responsive para diferentes tamaños de pantalla */
+@media (max-width: 600px) {
+  .MuiContainer-root {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 960px) {
+  .MuiContainer-root {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+@media (min-width: 961px) {
+  .MuiContainer-root {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+/* Animaciones y transiciones */
+.MuiPaper-root {
+  transition: all 0.3s ease;
+}
+
+.MuiTab-root {
+  transition: all 0.2s ease;
+}
+
+/* Mejoras visuales */
+.MuiAppBar-root {
+  background: linear-gradient(45deg, #1976d2 30%, #2196f3 90%);
+}
+
+.MuiPaper-root:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos para los menús laterales */
+.MuiTabs-vertical {
+  min-height: 300px; /* Altura mínima para el menú */
+}
+
+.MuiTabs-vertical .MuiTab-root {
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.MuiTabs-vertical .MuiTab-root:hover {
+  opacity: 1;
+  background-color: rgba(25, 118, 210, 0.04);
+}
+
+.MuiTabs-vertical .Mui-selected {
+  opacity: 1;
+  background-color: rgba(25, 118, 210, 0.08);
+}
+
+/* Responsive */
+@media (max-width: 960px) {
+  .MuiTabs-vertical {
+    width: 200px;
+  }
+}
+
+@media (max-width: 600px) {
+  .MuiTabs-vertical {
+    width: 100%;
+    margin-bottom: 16px;
+  }
 }
