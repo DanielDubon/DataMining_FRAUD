@@ -96,8 +96,10 @@ function Create({ executeQuery }) {
     };
 
     const handlePropertyChange = (nodeName, propertyName, value) => {
-        const processedValue = propertyName === 'ID' ?
-            (value === '' ? '' : parseInt(value, 10)) : value;
+        let processedValue = value;
+        if (propertyName === 'ID' || propertyName === 'DPI') {
+            processedValue = value === '' ? '' : parseInt(value, 10);
+        }
 
         setFormData({
             ...formData,
@@ -140,7 +142,7 @@ function Create({ executeQuery }) {
                         nodeTypes[nodeName].properties[key].type === 'datetime') {
                         return `${key}: date('${value}')`;
                     }
-                    if (key === 'ID') {
+                    if (key === 'ID' || key === 'DPI') {
                         return `${key}: ${value}`;
                     }
                     if (typeof value === 'string') {
