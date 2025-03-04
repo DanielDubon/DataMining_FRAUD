@@ -37,7 +37,7 @@ function Read({ executeQuery, consultarUnNodo, handleAggregateQuery, handleFilte
         dispositivos: ['ID', 'Tipo', 'Ubicacion', 'UsoFrecuente', 'FechaRegistro'],
         establecimientos: ['ID', 'Nombre', 'Ubicacion', 'Tipo', 'NivelRiesgo'],
         personas: ['DPI', 'Nombre', 'FechaNacimiento', 'Direccion', 'NivelRiesgo'],
-        transacciones: ['ID', 'Monto', 'Fecha', 'Ubicacion', 'Tipo']
+        transaccións: ['ID', 'Monto', 'Fecha', 'Ubicacion', 'Tipo']
     };
 
     const formatValue = (value) => {
@@ -91,7 +91,7 @@ function Read({ executeQuery, consultarUnNodo, handleAggregateQuery, handleFilte
                             <MenuItem value="dispositivos">Ver Dispositivos</MenuItem>
                             <MenuItem value="establecimientos">Ver Establecimientos</MenuItem>
                             <MenuItem value="personas">Ver Personas</MenuItem>
-                            <MenuItem value="transacciones">Ver Transacciones</MenuItem>
+                            <MenuItem value="transaccións">Ver Transacciones</MenuItem>
                         </Select>
                     </FormControl>
                     <Button
@@ -124,7 +124,7 @@ function Read({ executeQuery, consultarUnNodo, handleAggregateQuery, handleFilte
                             <FormControlLabel value="dispositivos" control={<Radio />} label="Dispositivos" />
                             <FormControlLabel value="establecimientos" control={<Radio />} label="Establecimientos" />
                             <FormControlLabel value="personas" control={<Radio />} label="Personas" />
-                            <FormControlLabel value="transacciones" control={<Radio />} label="Transacciones" />
+                            <FormControlLabel value="transaccións" control={<Radio />} label="Transacciones" />
                         </RadioGroup>
                     </FormControl>
                     <FormControl fullWidth style={{ marginBottom: '20px' }}>
