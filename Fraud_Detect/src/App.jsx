@@ -204,6 +204,7 @@ function App() {
                   <Tab label="Operaciones de Lectura" />
                   <Tab label="Consultar Nodo" />
                   <Tab label="Consultas Agregadas" />
+                  <Tab label="Consultas Filtradas" />
                 </Tabs>
               </Paper>
             )}
@@ -284,6 +285,21 @@ function App() {
                   <DatabaseManager 
                     executeQuery={executeQuery} 
                     showOnlyAggregates={true} 
+                    sx={{
+                      '& .MuiPaper-root': {
+                        p: 3,
+                        textAlign: 'left'
+                      }
+                    }}
+                  />
+                </TabPanel>
+                <TabPanel value={readTabValue} index={3} sx={{ 
+                  p: 0,
+                  pl: 3,
+                }}>
+                  <DatabaseManager 
+                    executeQuery={executeQuery} 
+                    showOnlyFilters={true} 
                     sx={{
                       '& .MuiPaper-root': {
                         p: 3,
