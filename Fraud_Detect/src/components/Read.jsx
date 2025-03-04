@@ -19,7 +19,7 @@ import {
     Radio
 } from '@mui/material';
 
-function Read({ executeQuery, consultarUnNodo, handleAggregateQuery, handleFilterQuery, results, error, showOnlyQueries, showOnlyConsulta, showOnlyAggregates, showOnlyFilters }) {
+function Read({ executeQuery, consultarUnNodo, handleAggregateQuery, handleFilterQuery, results, error, showOnlyQueries, showOnlyConsulta, showOnlyAggregates, showOnlyFilters, showOnlyAdvancedSearch }) {
     const [selectedQuery, setSelectedQuery] = useState('');
     const [selectedFilterQuery, setSelectedFilterQuery] = useState('');
     const [tipoNodo, setTipoNodo] = useState('clientes');
@@ -28,6 +28,7 @@ function Read({ executeQuery, consultarUnNodo, handleAggregateQuery, handleFilte
     const [hasSearched, setHasSearched] = useState(false);
     const [selectedAggregateQuery, setSelectedAggregateQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [selectedAdvancedQuery, setSelectedAdvancedQuery] = useState('');
 
     // Mapeo de propiedades por tipo de nodo
     const propiedadesPorTipo = {
@@ -63,8 +64,13 @@ function Read({ executeQuery, consultarUnNodo, handleAggregateQuery, handleFilte
 
     const handleExecuteQuery = () => {
         setIsLoading(true);
-        setHasSearched(true);
-        executeQuery(selectedQuery).finally(() => setIsLoading(false));
+        executeQuery(selectedQuery, { valor }).finally(() => setIsLoading(false));
+    };
+
+    const handleAdvancedQueryClick = () => {
+        setIsLoading(true);
+        executeQuery(selectedAdvancedQuery, { valor: parseInt(valor) })
+            .finally(() => setIsLoading(false));
     };
 
     return (
@@ -87,6 +93,8 @@ function Read({ executeQuery, consultarUnNodo, handleAggregateQuery, handleFilte
                             <MenuItem value="personas">Ver Personas</MenuItem>
                             <MenuItem value="transacciones">Ver Transacciones</MenuItem>
                             <MenuItem value="relacionesClientes">Ver Relaciones de Clientes</MenuItem>
+                            <MenuItem value="buscarPropietarioDispositivo">Buscar Propietario de Dispositivo</MenuItem>
+                            <MenuItem value="buscarPropietarioTransaccion">Buscar Propietario de Transacción</MenuItem>
                         </Select>
                     </FormControl>
                     <Button
@@ -208,6 +216,45 @@ function Read({ executeQuery, consultarUnNodo, handleAggregateQuery, handleFilte
                         style={{ marginBottom: '20px' }}
                     >
                         Aplicar Filtro
+                    </Button>
+                </>
+            )}
+
+            {showOnlyAdvancedSearch && (
+                <>
+                    <Typography variant="h5" gutterBottom style={{ color: '#333', fontWeight: 'bold', marginBottom: '20px' }}>
+                        Búsqueda Avanzada
+                    </Typography>
+                    <FormControl fullWidth style={{ marginBottom: '20px' }}>
+                        <InputLabel>Selecciona una consulta avanzada</InputLabel>
+                        <Select
+                            value={selectedAdvancedQuery}
+                            onChange={(e) => setSelectedAdvancedQuery(e.target.value)}
+                        >
+                            <MenuItem value="buscarPropietarioDispositivo">Buscar Propietario de Dispositivo</MenuItem>
+                            <MenuItem value="buscarTransaccionPorID">Buscar Responsable de Transacción</MenuItem>
+                            <MenuItem value="buscarEstablecimientoPorID">Buscar Establecimiento por ID</MenuItem>
+                            <MenuItem value="buscarVisitasEstablecimiento">Buscar Visitas a Establecimiento</MenuItem>
+                            <MenuItem value="buscarPagosEstablecimiento">Buscar Pagos a Establecimiento</MenuItem>
+                            <MenuItem value="buscarTransferenciasCuenta">Buscar Transferencias entre Cuentas</MenuItem>
+                            <MenuItem value="buscarAutorizacionesCuenta">Buscar Autorizaciones de Cuenta</MenuItem>
+                            <MenuItem value="buscarRelacionPersonas">Buscar Relaciones entre Personas</MenuItem>
+                        </Select>
+                    </FormControl>
+                    <TextField
+                        label="Valor"
+                        value={valor}
+                        onChange={(e) => setValor(e.target.value)}
+                        fullWidth
+                        style={{ marginBottom: '20px' }}
+                    />
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleAdvancedQueryClick}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? 'Cargando...' : 'Ejecutar Búsqueda Avanzada'}
                     </Button>
                 </>
             )}

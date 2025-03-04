@@ -18,6 +18,7 @@ import {
 } from '@mui/material'
 import CreateRelation from './components/CreateRelation'
 import lupaGif from './assets/lupa.gif'
+import FraudDetection from './components/FraudDetection'
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props
@@ -36,6 +37,7 @@ function App() {
   const [value, setValue] = React.useState(0)
   const [createTabValue, setCreateTabValue] = React.useState(0)
   const [readTabValue, setReadTabValue] = React.useState(0)
+  const [fraudTabValue, setFraudTabValue] = React.useState(0)
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -47,6 +49,10 @@ function App() {
 
   const handleReadTabChange = (event, newValue) => {
     setReadTabValue(newValue)
+  }
+
+  const handleFraudTabChange = (event, newValue) => {
+    setFraudTabValue(newValue)
   }
 
   const executeQuery = async (query) => {
@@ -165,10 +171,11 @@ function App() {
                   }
                 }}
               >
-                <Tab label="Leer" />
+                <Tab label="Buscar" />
                 <Tab label="Crear" />
                 <Tab label="Actualizar" />
                 <Tab label="Eliminar" />
+                <Tab label="Detección de Fraude" />
               </Tabs>
             </Container>
           </Paper>
@@ -218,6 +225,7 @@ function App() {
                   <Tab label="Consultar Nodo" />
                   <Tab label="Consultas Agregadas" />
                   <Tab label="Consultas Filtradas" />
+                  <Tab label="Búsqueda Avanzada" />
                 </Tabs>
               </Paper>
             )}
@@ -250,6 +258,39 @@ function App() {
                 >
                   <Tab label="Crear Nodos" />
                   <Tab label="Crear Relaciones" />
+                </Tabs>
+              </Paper>
+            )}
+
+            {/* Menú Lateral para DETECCIÓN DE FRAUDE */}
+            {value === 4 && (
+              <Paper 
+                elevation={2} 
+                sx={{ 
+                  width: '250px',
+                  flexShrink: 0,
+                  position: 'fixed',
+                  top: '180px',
+                  height: 'auto',
+                  overflowY: 'auto'
+                }}
+              >
+                <Tabs
+                  value={fraudTabValue}
+                  onChange={handleFraudTabChange}
+                  orientation="vertical"
+                  variant="scrollable"
+                  sx={{
+                    '& .MuiTab-root': {
+                      alignItems: 'flex-start',
+                      textAlign: 'left',
+                      py: 2
+                    }
+                  }}
+                >
+                  <Tab label="Transacciones Sospechosas" />
+                  <Tab label="Clientes con Múltiples Cuentas" />
+                  <Tab label="Dispositivos Frecuentes" />
                 </Tabs>
               </Paper>
             )}
@@ -321,6 +362,21 @@ function App() {
                     }}
                   />
                 </TabPanel>
+                <TabPanel value={readTabValue} index={4} sx={{ 
+                  p: 0,
+                  pl: 3,
+                }}>
+                  <DatabaseManager 
+                    executeQuery={executeQuery} 
+                    showOnlyAdvancedSearch={true} 
+                    sx={{
+                      '& .MuiPaper-root': {
+                        p: 3,
+                        textAlign: 'left'
+                      }
+                    }}
+                  />
+                </TabPanel>
               </TabPanel>
 
               <TabPanel value={value} index={1} sx={{ p: 0 }}>
@@ -377,6 +433,19 @@ function App() {
               }}>
                 <Delete 
                   executeQuery={executeQuery}
+                  sx={{
+                    '& .MuiPaper-root': {
+                      p: 3,
+                      textAlign: 'left'
+                    }
+                  }}
+                />
+              </TabPanel>
+
+              <TabPanel value={value} index={4} sx={{ p: 0 }}>
+                <FraudDetection 
+                  executeQuery={executeQuery}
+                  tabValue={fraudTabValue}
                   sx={{
                     '& .MuiPaper-root': {
                       p: 3,

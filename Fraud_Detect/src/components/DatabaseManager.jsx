@@ -16,7 +16,7 @@ function TabPanel(props) {
     );
 }
 
-function DatabaseManager({ executeQuery, showOnlyQueries, showOnlyConsulta, showOnlyAggregates, showOnlyFilters }) {
+function DatabaseManager({ executeQuery, showOnlyQueries, showOnlyConsulta, showOnlyAggregates, showOnlyFilters, showOnlyAdvancedSearch }) {
     const [results, setResults] = useState([]);
     const [error, setError] = useState('');
 
@@ -28,7 +28,16 @@ function DatabaseManager({ executeQuery, showOnlyQueries, showOnlyConsulta, show
         personas: "MATCH (p:Persona) RETURN p.Nombre as Nombre, p.FechaNacimiento as FechaNacimiento, p.Direccion as Direccion, toString(p.NivelRiesgo) as NivelRiesgo, toString(p.DPI) as DPI",
         transacciones: "MATCH (t:Transacción) RETURN toString(t.ID) as ID, t.Monto as Monto, t.Fecha as Fecha, t.Ubicacion as Ubicacion, t.Tipo as Tipo",
         relacionesClientes: "MATCH (c:Cliente)-[r]->(n) RETURN c.Nombre as Cliente, type(r) as Relacion, n.Nombre as Relacionado, n.Tipo as TipoRelacionado",
-        consultarUnNodo: (tipo, propiedad, valor) => `MATCH (n:${tipo}) WHERE n.${propiedad} = $valor RETURN n`
+        consultarUnNodo: (tipo, propiedad, valor) => `MATCH (n:${tipo}) WHERE n.${propiedad} = $valor RETURN n`,
+        buscarPropietarioDispositivo: "MATCH (p:Persona)-[:USA]->(d:Dispositivo {ID: $valor}) RETURN p.Nombre as Nombre, p.DPI as DPI, d.ID as DispositivoID",
+        buscarPropietarioTransaccion: "MATCH (cu:Cuenta)-[:REALIZA]->(t:Transacción {ID: $valor}) RETURN cu.ID as CuentaID, t.ID as TransaccionID",
+        buscarCuentaTransaccion: "MATCH (cu:Cuenta)-[:REALIZA]->(t:Transacción {ID: $valor}) RETURN cu.ID as CuentaID, t.ID as TransaccionID",
+        buscarDispositivoTransaccion: "MATCH (d:Dispositivo)-[:REALIZADA_DESDE]->(t:Transacción {ID: $valor}) RETURN d.ID as DispositivoID, t.ID as TransaccionID",
+        buscarRelacionPersonas: "MATCH (p1:Persona)-[r:RELACIONADO_CON]->(p2:Persona {ID: $valor}) RETURN p1.Nombre as Nombre1, p2.Nombre as Nombre2, r.TipoRelacion as TipoRelacion",
+        buscarVisitasEstablecimiento: "MATCH (p:Persona)-[:VISITA]->(e:Establecimiento {ID: $valor}) RETURN p.Nombre as Nombre, e.Nombre as Establecimiento",
+        buscarPagosEstablecimiento: "MATCH (e:Establecimiento)-[:RECIBE_PAGO]->(cu:Cuenta {ID: $valor}) RETURN e.Nombre as Establecimiento, cu.ID as CuentaID",
+        buscarTransferenciasCuenta: "MATCH (cu1:Cuenta)-[:TRANSFERENCIA]->(cu2:Cuenta {ID: $valor}) RETURN cu1.ID as CuentaOrigen, cu2.ID as CuentaDestino",
+        buscarAutorizacionesCuenta: "MATCH (cu:Cuenta)-[:AUTORIZADA_POR]->(p:Persona {ID: $valor}) RETURN cu.ID as CuentaID, p.Nombre as Autorizador"
     };
 
     const aggregateQueries = {
@@ -50,16 +59,15 @@ function DatabaseManager({ executeQuery, showOnlyQueries, showOnlyConsulta, show
         establecimientosRiesgosos: "MATCH (e:Establecimiento) WHERE toFloat(e.NivelRiesgo) > 2 RETURN e.ID as ID, e.Nombre as Nombre, e.Ubicacion as Ubicacion, e.Tipo as Tipo, e.NivelRiesgo as NivelRiesgo"
     };
 
-    const handleQuery = async (query, params = {}) => {
-        if (!query) {
-            setError('Por favor, proporciona una consulta válida.');
-            return;
-        }
+    const advancedQueries = {
+        buscarTransaccionPorID: "MATCH (p:Persona)-[:POSEE]->(c:Cuenta)-[:REALIZA]->(t:Transacción {ID: $valor}) RETURN p.Nombre, p.DPI",
+        buscarPropietarioDispositivo: "MATCH (p:Persona)-[:USA]->(d:Dispositivo {ID: $valor}) RETURN p.Nombre as Nombre, p.DPI as DPI, d.ID as DispositivoID, d.FrecuenciaUso as FrecuenciaUso, d.UltimoUso as UltimoUso",
+    };
 
+    const handleQuery = async (query, params) => {
         const session = driver.session();
         try {
-            // Si es una consulta predefinida, obtenerla del objeto predefinedQueries
-            const cypherQuery = predefinedQueries[query] || query;
+            const cypherQuery = advancedQueries[query];
             const result = await session.run(cypherQuery, params);
             const formattedResults = result.records.map(record => record.toObject());
             setResults(formattedResults);
@@ -121,7 +129,7 @@ function DatabaseManager({ executeQuery, showOnlyQueries, showOnlyConsulta, show
                       WHERE toString(n.${propiedad}) = '${valor}' 
                       RETURN ${returnClause}`;
         try {
-            await handleQuery(query);
+            await handleQuery(query, { valor });
         } catch (err) {
             setError('Error al consultar el nodo: ' + err.message);
         }
@@ -169,18 +177,48 @@ function DatabaseManager({ executeQuery, showOnlyQueries, showOnlyConsulta, show
         }
     };
 
+    const handleAdvancedQuery = async (query, params = {}) => {
+        console.log("handleAdvancedQuery llamada");
+
+        if (!query) {
+            setError('Por favor, proporciona una consulta avanzada válida.');
+            return;
+        }
+
+        const session = driver.session();
+        try {
+            console.log("Consulta avanzada:", query);
+            console.log("Parámetros:", params);
+
+            const cypherQuery = advancedQueries[query];
+            console.log("Consulta Cypher:", cypherQuery);
+
+            const result = await session.run(cypherQuery, params);
+            const formattedResults = result.records.map(record => record.toObject());
+            setResults(formattedResults);
+            setError('');
+        } catch (err) {
+            console.error('Error al ejecutar la consulta avanzada:', err);
+            setError(err.message);
+        } finally {
+            await session.close();
+        }
+    };
+
     return (
         <Read 
             executeQuery={handleQuery} 
             consultarUnNodo={showOnlyConsulta ? handleConsultarUnNodo : undefined} 
             handleAggregateQuery={showOnlyAggregates ? handleAggregateQuery : undefined}
             handleFilterQuery={showOnlyFilters ? handleFilterQuery : undefined} 
+            handleAdvancedQuery={showOnlyAdvancedSearch ? handleAdvancedQuery : undefined}
             results={results} 
             error={error}
             showOnlyQueries={showOnlyQueries} 
             showOnlyConsulta={showOnlyConsulta} 
             showOnlyAggregates={showOnlyAggregates}
             showOnlyFilters={showOnlyFilters} 
+            showOnlyAdvancedSearch={showOnlyAdvancedSearch}
         />
     );
 }
